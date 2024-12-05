@@ -1,0 +1,62 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Helper function to check if user is an admin
+    function isAdmin() {
+      return request.auth != null && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Helper function to check if user is accessing their own document
+    function isUserDoc(userId) {
+      return request.auth.uid == userId;
+    }
+
+    match /users/{userId} {
+      // Allow users to read their own document
+      allow read: if isAuthenticated() && isUserDoc(userId);
+      
+      // Allow users to create their initial document
+      allow create: if isAuthenticated() 
+        && isUserDoc(userId)
+        && request.resource.data.keys().hasAll(['email', 'role', 'createdAt', 'updatedAt'])
+        && request.resource.data.role == 'serrurier';
+      
+      // Allow users to update their own document
+      allow update: if isAuthenticated() 
+        && isUserDoc(userId)
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasAny(['displayName', 'photoURL', 'phone', 'company', 'updatedAt']);
+      
+      // Allow users to delete their own document
+      allow delete: if isAuthenticated() && isUserDoc(userId);
+    }
+
+    match /cities/{cityId} {
+      // Allow anyone to read cities
+      allow read: if true;
+      
+      // Only allow admins to write to cities
+      allow write: if isAdmin();
+    }
+
+    match /locksmiths/{locksmithId} {
+      // Allow anyone to read locksmith profiles
+      allow read: if true;
+      
+      // Only allow admins to write to locksmith profiles
+      allow write: if isAdmin();
+    }
+
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
