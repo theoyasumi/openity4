@@ -1,3 +1,4 @@
+"use client";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +11,56 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { SearchIcon, ArrowRightIcon } from "@/components/icons";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+
+interface City {
+  name: string;
+  image: string;
+  count: string;
+  available: boolean;
+}
+
+const mainCities = [
+  {
+    name: "Bordeaux",
+    image: "https://images.pexels.com/photos/1059078/pexels-photo-1059078.jpeg",
+    count: "80+ serruriers",
+    available: true
+  },
+  {
+    name: "Paris",
+    image: "https://images.pexels.com/photos/338515/pexels-photo-338515.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+    count: "Bientôt disponible",
+    available: false
+  },
+  {
+    name: "Marseille",
+    image: "https://images.pexels.com/photos/27587788/pexels-photo-27587788/free-photo-of-mer-paysage-france-monument.png?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+    count: "Bientôt disponible",
+    available: false
+  },
+  {
+    name: "Toulouse",
+    image: "https://i0.wp.com/www.visiterama.com/wp-content/uploads/2020/03/Toulouse_vue_aerienneweb.jpg?fit=1099%2C733&ssl=1",
+    count: "Bientôt disponible",
+    available: false
+  },
+  {
+    name: "Lyon",
+    image: "https://res.cloudinary.com/civocracy/image/upload/communities/cover/xzj2fdrvwygnvi85pgoe",
+    count: "Bientôt disponible",
+    available: false
+  },
+  {
+    name: "Lille",
+    image: "https://www.carrere-promotion.com/sites/default/files/styles/custom_680x384_/public/2021-11/Lille_vue_gd_place.jpg?itok=5r5pvSIa",
+    count: "Bientôt disponible",
+    available: false
+  }
+];
 
 const features = [
   {
@@ -26,33 +77,32 @@ const features = [
   }
 ];
 
-const cities = [
-  {
-    name: "Paris",
-    image: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?q=80&w=2073&auto=format&fit=crop",
-    count: "250+ serruriers"
-  },
-  {
-    name: "Lyon",
-    image: "https://images.unsplash.com/photo-1524484485831-a92ffc0de03f?q=80&w=2069&auto=format&fit=crop",
-    count: "120+ serruriers"
-  },
-  {
-    name: "Bordeaux",
-    image: "https://images.unsplash.com/photo-1589028699382-19d2669ddced?q=80&w=2070&auto=format&fit=crop",
-    count: "80+ serruriers"
-  }
-];
-
-const specialties = [
-  { value: "urgence", label: "Urgence 24/7" },
-  { value: "ouverture", label: "Ouverture de porte" },
-  { value: "blindage", label: "Blindage et sécurisation" },
-  { value: "serrure", label: "Installation de serrure" },
-  { value: "coffre", label: "Ouverture de coffre-fort" },
-];
-
 export default function Home() {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [value, setValue] = useState("");
+  const [cities, setCities] = useState<City[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    setIsLoading(true);
+    fetch('/api/cities')
+      .then(response => response.json())
+      .then(data => {
+        console.log('Données reçues:', data);
+        setCities(data);
+      })
+      .catch(error => console.error('Erreur:', error))
+      .finally(() => setIsLoading(false));
+  }, []);
+
+  const filteredCities = cities
+    .filter((city) => 
+      city.name.toLowerCase().includes(value.toLowerCase()) && 
+      value.length >= 2
+    );
+  console.log('Recherche:', value, 'Résultats:', filteredCities);
+
   return (
     <div className="flex flex-col min-h-[calc(100vh-4rem)]">
       {/* Hero Section */}
@@ -62,32 +112,73 @@ export default function Home() {
             Trouvez un serrurier près de chez vous
           </h1>
           <p className="text-xl md:text-2xl text-muted-foreground mb-8">
-            Des professionnels qualifiés disponibles 24h/24 et 7j/7
+            Des professionnels de confiance disponibles 24h/24 et 7j/7
           </p>
           
           {/* Search Bar */}
           <div className="flex flex-col sm:flex-row gap-4 max-w-2xl mx-auto mb-8">
             <div className="relative flex-1">
-              <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
-              <Input 
-                type="text" 
-                placeholder="Entrez votre ville..." 
-                className="pl-10 h-12"
-              />
+              <Popover 
+                open={value.length >= 2 && open} 
+                onOpenChange={(isOpen) => {
+                  if (value.length >= 2) {
+                    setOpen(isOpen);
+                  }
+                }}
+              >
+                <PopoverTrigger asChild>
+                  <div className="relative w-full">
+                    <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
+                    <Input
+                      type="text"
+                      placeholder="Entrez votre ville..."
+                      className="pl-10 h-12 w-full"
+                      value={value}
+                      onChange={(e) => {
+                        setValue(e.target.value);
+                        setOpen(e.target.value.length >= 2);
+                      }}
+                    />
+                  </div>
+                </PopoverTrigger>
+                <PopoverContent 
+                  className="p-0 w-full" 
+                  align="start"
+                  onOpenAutoFocus={(e) => e.preventDefault()}
+                >
+                  <Command 
+                    shouldFilter={false}
+                    className="border-none"
+                  >
+                    {isLoading ? (
+                      <CommandEmpty>Chargement des villes...</CommandEmpty>
+                    ) : filteredCities.length === 0 ? (
+                      <CommandEmpty>Aucune ville trouvée</CommandEmpty>
+                    ) : (
+                      <CommandGroup>
+                        {filteredCities.map((city) => (
+                          <CommandItem
+                            key={city.name}
+                            onSelect={() => {
+                              setValue(city.name);
+                              document.querySelector('input')?.focus();
+                            }}
+                            className="cursor-pointer"
+                          >
+                            {city.name}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    )}
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
-            <Select>
-              <SelectTrigger className="h-12 sm:w-[200px]">
-                <SelectValue placeholder="Spécialité" />
-              </SelectTrigger>
-              <SelectContent>
-                {specialties.map((specialty) => (
-                  <SelectItem key={specialty.value} value={specialty.value}>
-                    {specialty.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button size="lg" className="h-12">
+            <Button size="lg" className="h-12" onClick={() => {
+              if (value && cities.some(city => city.name.toLowerCase() === value.toLowerCase())) {
+                router.push(`/ville/${value.toLowerCase()}`);
+              }
+            }}>
               Rechercher
               <ArrowRightIcon />
             </Button>
@@ -119,28 +210,48 @@ export default function Home() {
             Nos principales villes
           </h2>
           <div className="grid md:grid-cols-3 gap-8">
-            {cities.map((city) => (
-              <Link 
-                key={city.name} 
-                href={`/ville/${city.name.toLowerCase()}`}
-                className="group"
-              >
-                <Card className="overflow-hidden">
-                  <div className="relative h-48">
-                    <img
-                      src={city.image}
-                      alt={city.name}
-                      className="w-full h-full object-cover transition-transform group-hover:scale-105"
-                    />
-                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                      <div className="text-center text-white">
-                        <h3 className="text-2xl font-bold mb-2">{city.name}</h3>
-                        <p className="text-sm">{city.count}</p>
+            {mainCities.map((city) => (
+              city.available ? (
+                <Link 
+                  key={city.name}
+                  href={`/ville/${city.name.toLowerCase()}`}
+                  className="group"
+                >
+                  <Card className="overflow-hidden">
+                    <div className="relative h-48">
+                      <img
+                        src={city.image}
+                        alt={city.name}
+                        className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                        <div className="text-center text-white">
+                          <h3 className="text-2xl font-bold mb-2">{city.name}</h3>
+                          <p className="text-sm">{city.count}</p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </Card>
-              </Link>
+                  </Card>
+                </Link>
+              ) : (
+                <div key={city.name} className="group">
+                  <Card className="overflow-hidden">
+                    <div className="relative h-48">
+                      <img
+                        src={city.image}
+                        alt={city.name}
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                        <div className="text-center text-white">
+                          <h3 className="text-2xl font-bold mb-2">{city.name}</h3>
+                          <p className="text-sm">{city.count}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                </div>
+              )
             ))}
           </div>
         </div>
