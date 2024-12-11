@@ -60,17 +60,6 @@ export default function Navbar() {
             <Link href="/" className="hover:text-primary">
               Accueil
             </Link>
-            
-            <NavigationMenu>
-              <NavigationMenuList>
-                <NavigationMenuItem>
-                  <NavigationMenuTrigger>Villes</NavigationMenuTrigger>
-                  <NavigationMenuContent>
-                    <CitiesMegaMenu cities={menuCities} />
-                  </NavigationMenuContent>
-                </NavigationMenuItem>
-              </NavigationMenuList>
-            </NavigationMenu>
 
             {user ? (
               <>

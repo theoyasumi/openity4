@@ -131,7 +131,7 @@ export default function Home() {
                     <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
                     <Input
                       type="text"
-                      placeholder="Entrez votre ville..."
+                      placeholder="Entrez votre ville ou commune..."
                       className="pl-10 h-12 w-full"
                       value={value}
                       onChange={(e) => {
@@ -162,6 +162,7 @@ export default function Home() {
                             onSelect={() => {
                               setValue(city.name);
                               document.querySelector('input')?.focus();
+                              router.push(`/ville/${city.name.toLowerCase()}`);
                             }}
                             className="cursor-pointer"
                           >
@@ -186,25 +187,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="py-16 px-4 bg-background">
-        <div className="max-w-7xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12">
-            Pourquoi choisir nos serruriers ?
-          </h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            {features.map((feature, index) => (
-              <Card key={index} className="p-6">
-                <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
-                <p className="text-muted-foreground">{feature.description}</p>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Cities Section */}
-      <section className="py-16 px-4 bg-accent/50">
+            {/* Cities Section */}
+      <section className="py-16">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-3xl font-bold text-center mb-12">
             Nos principales villes
@@ -256,6 +240,25 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+
+      {/* Features Section */}
+      <section className="py-16 px-4 bg-background">
+        <div className="max-w-7xl mx-auto">
+          <h2 className="text-3xl font-bold text-center mb-12">
+            Pourquoi choisir nos serruriers ?
+          </h2>
+          <div className="grid md:grid-cols-3 gap-8">
+            {features.map((feature, index) => (
+              <Card key={index} className="p-6">
+                <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
+                <p className="text-muted-foreground">{feature.description}</p>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
 
       {/* CTA Section */}
       <section className="py-16 px-4 bg-background">

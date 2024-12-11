@@ -9,6 +9,7 @@ import { ArrowRightIcon } from "@/components/icons";
 import { notFound } from "next/navigation";
 import { getAllCities } from "@/lib/services/cities";
 import { LocksmithLink } from "./LocksmithLink";
+import { Phone, MapPin, Settings, Clock, ArrowRight, Star } from 'lucide-react'
 
 export async function generateStaticParams() {
   // Récupère toutes les villes depuis Firestore
@@ -59,16 +60,12 @@ export default async function CityPage({ params }: { params: { city: string } })
           </p>
 
           {/* Search Bar */}
-          <div className="flex flex-col sm:flex-row gap-4 max-w-2xl mx-auto mb-8">
-            <Input
-              type="text"
-              placeholder="Type de service..."
-              className="pl-10 h-12"
-            />
+          <div className="flex flex-row sm:flex-row gap-4 mx-auto mb-8">
+            
             <Input
               type="text"
               placeholder="Quartier"
-              className="h-12 sm:max-w-[200px]"
+              className="h-12 w-full"
               defaultValue={city.data.name}
             />
             <Button size="lg" className="h-12">
@@ -95,22 +92,63 @@ export default async function CityPage({ params }: { params: { city: string } })
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
               {locksmiths.map((locksmith) => (
-                <Card key={locksmith.id} className="overflow-hidden">
-                  <div className="p-6">
-                    <h3 className="text-xl font-semibold">{locksmith.name}</h3>
-                    <div className="mt-6 flex items-center justify-between">
-                      <LocksmithLink 
-                        href={`/serrurier/${locksmith.id}`}
-                        cityId={params.city}
-                      >
-                        <Button>
-                          Voir le profil
-                          <ArrowRightIcon />
-                        </Button>
-                      </LocksmithLink>
-                    </div>
-                  </div>
-                </Card>
+
+<Card key={locksmith.id} className="overflow-hidden">
+  <div className="p-6">
+    <h3 className="text-xl font-semibold">{locksmith.name}</h3>
+    
+    <div className="mt-4 text-sm flex items-center">
+      <Phone className="mr-2 h-4 w-4 text-gray-500" />
+      <p>{locksmith.phone}</p>
+    </div>
+    
+    <div className="mt-4 text-sm flex items-center">
+      <MapPin className="mr-2 h-4 w-4 text-gray-500" />
+      <p>{locksmith.cities.join(', ')}</p>
+    </div>
+    
+    <div className="mt-4 text-sm flex items-center">
+      <Settings className="mr-2 h-4 w-4 text-gray-500" />
+      <p>{locksmith.services.join(', ')}</p>
+    </div>
+    
+    <div className="mt-4 text-sm">
+      <div className="flex items-center">
+        <Clock className="mr-2 h-4 w-4 text-gray-500" />
+        {locksmith.workingHours.is24h ? (
+          <p>24/7</p>
+        ) : (
+          <div>
+            <ul className="list-disc ml-6">
+              {Object.entries(locksmith.workingHours.schedule || {}).map(([day, hours]) => (
+                <li key={day}>{day.charAt(0).toUpperCase() + day.slice(1)} : {hours}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+    </div>
+    
+    <div className="mt-6 flex items-center">
+      <div className="flex items-center">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <Star fill="currentColor" key={star} className="h-5 w-5 text-yellow-500" />
+        ))}
+      </div>
+      <span className="ml-2 text-sm text-gray-500">5.0 (100 avis)</span>
+    </div>
+    
+    <div className="mt-6 flex items-center justify-between">
+      <LocksmithLink href={`/serrurier/${locksmith.id}`} cityId={params.city}>
+        <Button>
+          Voir le profil
+          <ArrowRight className="ml-2 h-4 w-4" />
+        </Button>
+      </LocksmithLink>
+    </div>
+  </div>
+</Card>
+                
               ))}
             </div>
           )}
